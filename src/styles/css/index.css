@@ -1,0 +1,10 @@
+@font-face {
+  font-family: Euclid;
+  src: url("../fonts/Euclid.woff") format("woff");
+}
+body {
+  margin: 0;
+}
+div {
+  font-family: Euclid;
+}
