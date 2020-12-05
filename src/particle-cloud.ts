@@ -1,9 +1,10 @@
 import * as THREE from "three";
-import { CircleBufferGeometry } from "three";
+import { CircleBufferGeometry, IUniform } from "three";
 import { switchGUI, threeState } from "./three";
 import { LineMaterial } from "three/examples/jsm/lines/LineMaterial.js";
 import { LineGeometry } from "three/examples/jsm/lines/LineGeometry.js";
 import { GUI } from "three/examples/jsm/libs/dat.gui.module";
+import { EffectController } from "./gui-controller";
 
 type ParticlesState = {
   particlesData: Array<{ velocity: THREE.Vector3; numConnections: number }>;
@@ -15,7 +16,7 @@ type ParticlesState = {
   linesMesh: THREE.Line;
   group: THREE.Group;
   uuids: Array<string>;
-  uniforms: { [key: string]: any };
+  uniforms: { [key: string]: IUniform };
   sizes: Array<number>;
 };
 
@@ -261,7 +262,7 @@ export function particleAnimate() {
         particleData.numConnections++;
         particleDataB.numConnections++;
 
-        const alpha = 1.0 - dist / effectController.minDistance;
+        const alpha = 1.0 - dist / (effectController.minDistance as number);
         particlesState.positions[vertexpos++] =
           particlesState.particlePositions[i * 3];
         particlesState.positions[vertexpos++] =
@@ -301,7 +302,7 @@ export function particleAnimate() {
   // pointCloudGeometry.attributes.color.needsUpdate = true;
 }
 
-const effectController: any = {
+const effectController: EffectController = {
   showDots: true,
   showLines: true,
   minDistance: 150,
@@ -339,7 +340,7 @@ export function cleanUpParticles() {
   //     const object = particlesState.group.getObjectByProperty(
   //       "uuid",
   //       uuid
-  //     ) as any;
+  //     );
   //     object.geometry.dispose();
   //     object.material.dispose();
   //   }

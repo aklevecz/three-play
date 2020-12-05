@@ -4,19 +4,18 @@ import { GUI } from "three/examples/jsm/libs/dat.gui.module";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 import particleCloud, {
   cleanUpParticles,
-  initGUI,
   particleAnimate,
 } from "./particle-cloud";
-import test, { cleanupTest, testAnimate } from "./test";
+import orb, { cleanupOrb, orbAnimate } from "./orb";
 import screen, { cleanupScreen, initScreenGUI, screenAnimate } from "./screen";
-// @ts-ignore
+import { EffectController } from "./gui-controller";
 type ThreeState = {
   container: HTMLElement | null;
-  stats: any;
-  gui: any;
+  stats: Stats;
+  gui: typeof GUI;
   group: THREE.Group;
   scene: THREE.Scene;
-  camera: THREE.PerspectiveCamera | THREE.OrthographicCamera;
+  camera: THREE.PerspectiveCamera;
   controls: OrbitControls | null;
   renderer: THREE.WebGLRenderer;
   animations: Array<Function>;
@@ -33,37 +32,31 @@ export const threeState: ThreeState = {
   renderer: new THREE.WebGLRenderer({ antialias: true }),
   animations: [],
 };
-function setupScene(useHelper = false, r = 800, testingRes = false) {
+function setupScene(useHelper = false, r = 800) {
   threeState.container = document.getElementById("root");
 
   const aspect = window.innerWidth / window.innerHeight;
 
   threeState.camera = new THREE.PerspectiveCamera(45, aspect, 1, 4000);
-  // threeState.camera = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1);
   threeState.camera.position.z = 750;
   threeState.controls = new OrbitControls(
     threeState.camera,
     threeState.container
   );
-  // threeState.controls.autoRotate = true;
+  threeState.controls.autoRotate = true;
   threeState.controls.autoRotateSpeed = 2;
   // threeState.controls.minDistance = 1000;
   threeState.controls.maxDistance = 3000;
   threeState.scene.add(threeState.group);
-  if (!testingRes) {
-    threeState.renderer.setPixelRatio(window.devicePixelRatio);
-  } else {
-    threeState.renderer.setPixelRatio(0.7);
-  }
+  threeState.renderer.setPixelRatio(window.devicePixelRatio);
   threeState.renderer.setSize(window.innerWidth, window.innerHeight);
-  // threeState.renderer.setSize(350, 700);
   threeState.renderer.outputEncoding = THREE.sRGBEncoding;
   threeState.container.appendChild(threeState.renderer.domElement);
-  // threeState.container.appendChild(threeState.stats.dom);
+  threeState.container.appendChild(threeState.stats.dom);
 
   window.addEventListener("resize", onWindowResize, false);
   function onWindowResize() {
-    // threeState.camera.aspect = window.innerWidth / window.innerHeight;
+    threeState.camera.aspect = window.innerWidth / window.innerHeight;
     threeState.camera.updateProjectionMatrix();
     threeState.renderer.setSize(window.innerWidth, window.innerHeight);
   }
@@ -79,7 +72,7 @@ function setupScene(useHelper = false, r = 800, testingRes = false) {
     threeState.group.add(helper);
   }
 }
-
+// Make a transition handler?
 export default function three() {
   setupScene(false, 800);
   switchGUI();
@@ -95,30 +88,28 @@ export default function three() {
 
   function render() {
     const time = Date.now() * 0.001;
-    // threeState.group.rotation.y = time * 0.1;
     threeState.controls.update();
     threeState.renderer.render(threeState.scene, threeState.camera);
   }
 }
 
-const effectController: any = {
+const effectController: EffectController = {
   switch: false,
 };
 
 export function switchGUI() {
   const { gui } = threeState;
 
+  // Transition reducer once this needs more complexity?
   gui.add(effectController, "switch").onChange(function (value: boolean) {
     if (value) {
       cleanupScreen();
-
       particleCloud();
-      test();
-      threeState.animations = [testAnimate, particleAnimate];
+      orb();
+      threeState.animations = [orbAnimate, particleAnimate];
     } else {
       cleanUpParticles();
-      cleanupTest();
-
+      cleanupOrb();
       threeState.animations = [screenAnimate];
       initScreenGUI();
     }

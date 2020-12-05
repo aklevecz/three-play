@@ -1,6 +1,9 @@
 import * as THREE from "three";
 import { threeState } from "./three";
-var mesh: any, geometry: any, material: any, shaderMaterial: any;
+var mesh: THREE.Mesh,
+  geometry: THREE.SphereBufferGeometry,
+  material: THREE.MeshBasicMaterial,
+  shaderMaterial: THREE.ShaderMaterial;
 export default function () {
   const sphereTexture = new THREE.TextureLoader().load(
     require("./textures/eat-shit-texture.png")
@@ -33,13 +36,12 @@ export default function () {
   //   threeState.scene.remove(mesh);
 }
 
-export function testAnimate() {
+export function orbAnimate() {
   const time = Date.now() * 0.001;
   shaderMaterial.uniforms.time.value += 0.002;
-
   // mesh.rotation.y += (1 + Math.sin(time * 0.000001)) * 0.5;
 }
 
-export function cleanupTest() {
+export function cleanupOrb() {
   threeState.scene.remove(mesh);
 }
