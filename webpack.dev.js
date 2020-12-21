@@ -14,6 +14,7 @@ module.exports = merge(common, {
     }),
   ],
   devServer: {
+    disableHostCheck:true,
     contentBase: "./dist",
   },
 });

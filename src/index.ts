@@ -1,6 +1,7 @@
 import "./styles/css/index.css";
+import "./styles/css/animations.css";
 import three from "./three";
-function main() {
+export function main() {
   const root = document.createElement("div");
   root.id = "root";
   document.body.appendChild(root);

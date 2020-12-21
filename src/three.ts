@@ -9,6 +9,14 @@ import particleCloud, {
 import orb, { cleanupOrb, orbAnimate } from "./orb";
 import screen, { cleanupScreen, initScreenGUI, screenAnimate } from "./screen";
 import { EffectController } from "./gui-controller";
+import cubeWorld from "./cube-world";
+import audioAnalyser, { analyser, dataArray } from "./audio-analyser";
+import { PointerLockControls } from "three/examples/jsm/controls/PointerLockControls";
+import { ControlTypes } from "./constants";
+import controls from "./controls";
+import maze from "./maze";
+import theater from "./theater";
+
 type ThreeState = {
   container: HTMLElement | null;
   stats: Stats;
@@ -16,12 +24,17 @@ type ThreeState = {
   group: THREE.Group;
   scene: THREE.Scene;
   camera: THREE.PerspectiveCamera;
-  controls: OrbitControls | null;
+  orbitControls: OrbitControls;
+  pointerControls: PointerLockControls;
+  controls: any;
   renderer: THREE.WebGLRenderer;
   animations: Array<Function>;
+  controlObject: any;
 };
 
 export const threeState: ThreeState = {
+  orbitControls: null,
+  pointerControls: null,
   container: null,
   stats: Stats(),
   gui: new GUI(),
@@ -31,28 +44,32 @@ export const threeState: ThreeState = {
   group: new THREE.Group(),
   renderer: new THREE.WebGLRenderer({ antialias: true }),
   animations: [],
+  controlObject: null,
 };
-function setupScene(useHelper = false, r = 800) {
+
+function setupScene(
+  r: number = 800,
+  controlType: ControlTypes = ControlTypes.ORBIT
+) {
   threeState.container = document.getElementById("root");
 
   const aspect = window.innerWidth / window.innerHeight;
 
-  threeState.camera = new THREE.PerspectiveCamera(45, aspect, 1, 4000);
-  threeState.camera.position.z = 750;
-  threeState.controls = new OrbitControls(
-    threeState.camera,
-    threeState.container
-  );
-  threeState.controls.autoRotate = true;
-  threeState.controls.autoRotateSpeed = 2;
-  // threeState.controls.minDistance = 1000;
-  threeState.controls.maxDistance = 3000;
+  threeState.camera = new THREE.PerspectiveCamera(105, aspect, 0.1, 4000);
+  threeState.camera.position.z = 0.01;
+  threeState.controlObject = controls(controlType);
   threeState.scene.add(threeState.group);
   threeState.renderer.setPixelRatio(window.devicePixelRatio);
   threeState.renderer.setSize(window.innerWidth, window.innerHeight);
-  threeState.renderer.outputEncoding = THREE.sRGBEncoding;
+  // threeState.renderer.outputEncoding = THREE.sRGBEncoding;
   threeState.container.appendChild(threeState.renderer.domElement);
-  threeState.container.appendChild(threeState.stats.dom);
+
+  if (process.env.NODE_ENV === "development") {
+    threeState.container.appendChild(threeState.stats.dom);
+  } else {
+    // dumb
+    document.querySelector(".dg").remove();
+  }
 
   window.addEventListener("resize", onWindowResize, false);
   function onWindowResize() {
@@ -60,24 +77,17 @@ function setupScene(useHelper = false, r = 800) {
     threeState.camera.updateProjectionMatrix();
     threeState.renderer.setSize(window.innerWidth, window.innerHeight);
   }
-  if (useHelper) {
-    const helperGeometry = new THREE.BoxBufferGeometry(r, r, r);
-    const helperMaterial = new THREE.MeshBasicMaterial();
-    helperMaterial.blending = THREE.AdditiveBlending;
-    helperMaterial.color.setHex(0xff0000);
-    helperMaterial.transparent = true;
-    const helper = new THREE.BoxHelper(
-      new THREE.Mesh(helperGeometry, helperMaterial)
-    );
-    threeState.group.add(helper);
-  }
 }
 // Make a transition handler?
 export default function three() {
-  setupScene(false, 800);
+  setupScene(800, ControlTypes.ORBIT);
   switchGUI();
-  screen();
-  threeState.animations.push(screenAnimate);
+  // screen();
+  // cubeWorld();
+  theater();
+  maze();
+  audioAnalyser();
+  // threeState.animations.push(screenAnimate);
   animate();
   function animate() {
     threeState.animations.map((animation) => animation());
@@ -88,13 +98,19 @@ export default function three() {
 
   function render() {
     const time = Date.now() * 0.001;
-    threeState.controls.update();
+    if (threeState.controls === ControlTypes.ORBIT) {
+      threeState.orbitControls.update();
+    }
+    // if (threeState.controls === ControlTypes.POINTER) {
+    threeState.controlObject.update();
+    // }
     threeState.renderer.render(threeState.scene, threeState.camera);
   }
 }
 
 const effectController: EffectController = {
   switch: false,
+  controls: true,
 };
 
 export function switchGUI() {
@@ -114,4 +130,15 @@ export function switchGUI() {
       initScreenGUI();
     }
   });
+
+  // naively say true is orbit
+  gui.add(effectController, "controls").onChange(function (value: boolean) {
+    threeState.controlObject.cleanUp();
+    if (value) {
+      threeState.controlObject.setupOrbit();
+    } else {
+      threeState.controlObject.setupPointer();
+    }
+  });
+  gui.close();
 }

@@ -1,9 +1,3 @@
 declare module "three/examples/jsm/libs/dat.gui.module" {
-    export const GUI: any
-    // export default GUI
+  export const GUI: any;
 }
-
-// declare module "three/examples/jsm/libs/stats.module" {
-//     const Stats: any
-//     export default Stats
-// }

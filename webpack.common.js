@@ -22,20 +22,25 @@ module.exports = {
       {
         test: /\.tsx?$/,
         use: "ts-loader",
-        exclude: /node_modules/,
+        exclude: /node_modules|\.d\.ts$/,
+      },
+      {
+        test: /\.d\.ts$/,
+        loader: "ignore-loader",
       },
       {
         test: /\.css$/i,
         use: ["style-loader", "css-loader"],
       },
       {
-        test: /\.(png|svg|jpg|jpeg|gif)$/i,
+        test: /\.(png|svg|jpg|jpeg|gif|mp4)$/i,
         type: "asset/resource",
       },
       {
         test: /\.(woff|woff2|eot|ttf|otf)$/i,
         type: "asset/resource",
       },
+      { test: /\.mp3$/, type: "asset/resource" },
       {
         test: /\.glsl$/,
         include: SHADER_PATH,

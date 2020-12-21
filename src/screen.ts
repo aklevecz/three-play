@@ -1,11 +1,12 @@
-import { GUI } from "dat.gui";
 import * as THREE from "three";
 import { EffectController } from "./gui-controller";
 import { threeState } from "./three";
 
 var geometry, material: THREE.ShaderMaterial, mesh: THREE.Mesh;
 const texturePath = "./textures";
-const textureFiles = [1, 2, 3].map((n) => require(`${texturePath}/dj${n}.png`));
+const textureFiles = ["sticker.png", "smiler2.png", "sticker.png"].map((n) =>
+  require(`${texturePath}/${n}`)
+);
 const textures = textureFiles.map((texture) =>
   new THREE.TextureLoader().load(texture)
 );
@@ -20,7 +21,9 @@ export default function () {
       texture1: { value: textures[0] },
       texture2: { value: textures[1] },
       displacement: {
-        value: new THREE.TextureLoader().load(require("./textures/smiler.jpg")),
+        value: new THREE.TextureLoader().load(
+          require("./textures/sticker.png")
+        ),
       },
       resolution: { value: new THREE.Vector4() },
     },
